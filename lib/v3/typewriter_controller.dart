@@ -31,6 +31,7 @@ class TypeWriterController extends ValueNotifier<TypeWriterValue> {
       : duration = Duration.zero,
         repeat = false,
         autorun = false,
+        afterWordDelay = Duration.zero,
         super(TypeWriterValue([])) {
     stream.listen((text) {
       value += text;
@@ -52,6 +53,7 @@ class TypeWriterController extends ValueNotifier<TypeWriterValue> {
   TypeWriterController({
     required String text,
     required this.duration,
+    this.afterWordDelay = Duration.zero,
     this.repeat = false,
     this.autorun = true,
   }) : super(TypeWriterValue([text]));
@@ -72,11 +74,15 @@ class TypeWriterController extends ValueNotifier<TypeWriterValue> {
     super.value, {
     required this.duration,
     this.repeat = false,
+    this.afterWordDelay = Duration.zero,
     this.autorun = true,
   });
 
   /// Delay time between each character.
   final Duration duration;
+
+  /// Delay time after each word being shown.
+  final Duration afterWordDelay;
 
   /// Specifies whether the animation should repeat once completed.
   final bool repeat;
@@ -101,7 +107,13 @@ class TypeWriterController extends ValueNotifier<TypeWriterValue> {
             value.index = index;
           }
         }
+
         notifyListeners();
+
+        // Check if the index is at the end of the text
+        if (value.data.contains(value.text)) {
+          await Future.delayed(afterWordDelay);
+        }
 
         await start();
       } else {
